@@ -58,14 +58,22 @@ func SendRequestWOS(parentQid string, start int, end int, sid string) string {
 	return string(body)
 }
 
-func SaveDataAsFile(data string, start int, end int) {
+func SaveDataAsFile(data string, start int, end int, parentQid string) {
 	if data != "" {
-		filePath := fmt.Sprintf("%06d_%06d.txt", start, end)
+		dirPath := "./" + parentQid
+		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+            err := os.MkdirAll(dirPath, os.ModePerm)
+            if err != nil {
+                fmt.Println("Error creating directory: ", err)
+                return
+            }
+        }
+		filePath := fmt.Sprintf("%s/%06d_%06d.txt", dirPath, start, end)
 		err := os.WriteFile(filePath, []byte(data), 0644)
 		if err != nil {
-			fmt.Println("Save error: ", err)
+			fmt.Println("Error save file: ", err)
 		} else {
-			fmt.Println("File Save Complete: ", filePath)
+			fmt.Println("Complete save file: ", filePath)
 		}
 	} else {
 		fmt.Println("Can't find data.")
@@ -109,9 +117,9 @@ func GetSID() string {
 
 func main() {
 	var parentQid string
-	fmt.Print("Pleace enter QID：")
-	fmt.Print("Example: If URL = 'www.webofscience.com/wos/woscc/summary/0ee43ba5-7161-4bda-b496-037f8949e6f4-b716bb9a/relevance/1'\n")
-	fmt.Print("Then, QID = '0ee43ba5-7161-4bda-b496-037f8949e6f4-b716bb9a'\n")
+	fmt.Print("Pleace enter QID：\n")
+	fmt.Print("Example: If URL = 'www.webofscience.com/wos/woscc/summary/104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797/relevance/1'\n")
+	fmt.Print("Then, QID = '104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797'\n")
 	fmt.Scanln(&parentQid)
 
 	var mark int
@@ -130,7 +138,7 @@ func main() {
 		go func() {
 			defer wg.Done()
 			data := SendRequestWOS(parentQid, 1, mark, sid)
-			SaveDataAsFile(data, 1, mark)
+			SaveDataAsFile(data, 1, mark, parentQid)
 			<-guard
 		}()
 	} else {
@@ -145,7 +153,7 @@ func main() {
 			go func(s, e int) {
 				defer wg.Done()
 				data := SendRequestWOS(parentQid, s, e, sid)
-				SaveDataAsFile(data, s, e)
+				SaveDataAsFile(data, s, e, parentQid)
 				<-guard
 			}(start, end)
 			start = end + 1
