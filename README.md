@@ -1,5 +1,5 @@
 # Results Export For WebOfScience
-[繁體中文](README_zhTW.md)
+[繁體中文](README_zhTW.md) | [简体中文](README_zhCN.md)
 
 A tool written in Go for exporting Web of Science search results to plain text documents (especially useful when several thousand articles are to be shipped at once). It can be packaged for different operating environments using Go Build, and after packaging, there is no need for an additional Go language environment setup.
 
