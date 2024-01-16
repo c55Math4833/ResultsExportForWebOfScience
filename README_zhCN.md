@@ -1,5 +1,6 @@
 # Results Export For WebOfScience
-[English](README.md) | [繁體中文](README_zhTW.md)  
+[English](README.md) | [繁體中文](README_zhTW.md)
+
 使用 Go 语言撰写的 Web of Science 搜索结果导出为纯文本文档工具（特别适用于同时有几千篇要导出时），可使用 go build 封装至不同作业环境使用，封装后则不须另外进行 Go 语言环境建置。
 
 ## 需求
