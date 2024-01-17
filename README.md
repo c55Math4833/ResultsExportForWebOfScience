@@ -23,5 +23,3 @@ A tool written in Go for exporting Web of Science search results to plain text d
 5. Wait for the search results to finish exporting, and the program will automatically close.
 
     > Note: A tiny empty file may sometimes be produced due to network issues. Rerun the process if this occurs.
-
----
