@@ -11,6 +11,9 @@ import (
 	"regexp"
 	"strconv"
 	"sync"
+	"bufio"
+	"runtime"
+	"os/exec"
 )
 
 func SendRequestWOS(parentQid string, start int, end int, sid string) string {
@@ -80,6 +83,19 @@ func SaveDataAsFile(data string, start int, end int, parentQid string) {
 	}
 }
 
+func clearScreen() {
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	case "linux", "darwin": // Linux 和 macOS
+		cmd := exec.Command("clear")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	}
+}
+
 func GetSID() string {
 	resp, err := http.Get("http://www.webofknowledge.com/")
 	if err != nil {
@@ -116,49 +132,64 @@ func GetSID() string {
 }
 
 func main() {
-	var parentQid string
-	fmt.Print("Pleace enter QID：\n")
-	fmt.Print("Example: If URL = 'www.webofscience.com/wos/woscc/summary/104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797/relevance/1'\n")
-	fmt.Print("Then, QID = '104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797'\n")
-	fmt.Scanln(&parentQid)
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		clearScreen()
+		var parentQid string
+		fmt.Print("Pleace enter QID：\n")
+		fmt.Print("Example: If URL = 'www.webofscience.com/wos/woscc/summary/104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797/relevance/1'\n")
+		fmt.Print("Then, QID = '104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797'\n")
+		fmt.Scanln(&parentQid)
 
-	var mark int
-	fmt.Print("Export quantity: ")
-	fmt.Scanln(&mark)
+		var mark int
+		fmt.Print("Export quantity: ")
+		fmt.Scanln(&mark)
 
-	sid := GetSID()
+		sid := GetSID()
 
-	var wg sync.WaitGroup
-	maxGoroutines := 8
-	guard := make(chan struct{}, maxGoroutines)
+		var wg sync.WaitGroup
+		maxGoroutines := 8
+		guard := make(chan struct{}, maxGoroutines)
 
-	if mark < 1000 {
-		wg.Add(1)
-		guard <- struct{}{}
-		go func() {
-			defer wg.Done()
-			data := SendRequestWOS(parentQid, 1, mark, sid)
-			SaveDataAsFile(data, 1, mark, parentQid)
-			<-guard
-		}()
-	} else {
-		start := 1
-		for start <= mark {
-			end := start + 999
-			if end > mark {
-				end = mark
-			}
+		if mark < 1000 {
 			wg.Add(1)
 			guard <- struct{}{}
-			go func(s, e int) {
+			go func() {
 				defer wg.Done()
-				data := SendRequestWOS(parentQid, s, e, sid)
-				SaveDataAsFile(data, s, e, parentQid)
+				data := SendRequestWOS(parentQid, 1, mark, sid)
+				SaveDataAsFile(data, 1, mark, parentQid)
 				<-guard
-			}(start, end)
-			start = end + 1
+			}()
+		} else {
+			start := 1
+			for start <= mark {
+				end := start + 999
+				if end > mark {
+					end = mark
+				}
+				wg.Add(1)
+				guard <- struct{}{}
+				go func(s, e int) {
+					defer wg.Done()
+					data := SendRequestWOS(parentQid, s, e, sid)
+					SaveDataAsFile(data, s, e, parentQid)
+					<-guard
+				}(start, end)
+				start = end + 1
+			}
+		}
+
+		wg.Wait()
+
+		for {
+			fmt.Println("Press Enter to restart or type 'exit' to quit.")
+			scanner.Scan()
+			input := scanner.Text()
+			if input == "exit" {
+				return
+			} else if input == "" {
+				break
+			}
 		}
 	}
-
-	wg.Wait()
 }
