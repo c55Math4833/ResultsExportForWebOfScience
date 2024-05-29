@@ -28,10 +28,10 @@ jobs:
         cache: false
 
     - name: BuildWOSResultsExportTool
-      run: go build -ldflags "-s -w" -o WOSResultsExportTool.exe WebOfScienceResults.go
+      run: set GOOS=windows && set GOARCH=amd64 && go build -ldflags "-s -w" -o WOSResultsExportTool.exe WebOfScienceResultsExport.go
 
     - name: BuildWOSExportSpliceTool
-      run: go build -ldflags "-s -w" -o WOSExportSpliceTool.exe WebOfScienceSplice.go
+      run: set GOOS=windows && set GOARCH=amd64 && go build -ldflags "-s -w" -o WOSExportSpliceTool.exe WebOfScienceSplice.go
 
     - name: Attest Build Provenance for WOSResultsExportTool
       uses: actions/attest-build-provenance@v1.1.2
