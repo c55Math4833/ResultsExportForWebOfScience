@@ -13,8 +13,13 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -27,3 +32,13 @@ jobs:
 
     - name: BuildWOSExportSpliceTool
       run: go build -ldflags "-s -w" -o WOSExportSpliceTool.exe WebOfScienceSplice.go
+
+    - name: Attest Build Provenance for WOSResultsExportTool
+      uses: actions/attest-build-provenance@v1.1.2
+      with:
+        subject-path: 'WOSResultsExportTool.exe'
+
+    - name: Attest Build Provenance for WOSExportSpliceTool
+      uses: actions/attest-build-provenance@v1.1.2
+      with:
+        subject-path: 'WOSExportSpliceTool.exe'
