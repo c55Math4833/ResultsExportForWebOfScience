@@ -1,0 +1,62 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22.3'
+        cache: false
+
+    - name: BuildWOSResultsExportTool
+      run: |
+        export GOOS=windows
+        export GOARCH=amd64
+        go build -ldflags "-s -w" -o WOSResultsExportTool.exe WebOfScienceResultsExport.go
+    
+    - name: BuildWOSExportSpliceTool
+      run: |
+        export GOOS=windows
+        export GOARCH=amd64
+        go build -ldflags "-s -w" -o WOSExportSpliceTool.exe WebOfScienceSplice.go
+
+    - name: Attest Build Provenance for WOSResultsExportTool
+      uses: actions/attest-build-provenance@v1.1.2
+      with:
+        subject-path: 'WOSResultsExportTool.exe'
+
+    - name: Attest Build Provenance for WOSExportSpliceTool
+      uses: actions/attest-build-provenance@v1.1.2
+      with:
+        subject-path: 'WOSExportSpliceTool.exe'
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: WOSResultsExportTool
+        path: WOSResultsExportTool.exe
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: WOSExportSpliceTool
+        path: WOSExportSpliceTool.exe
