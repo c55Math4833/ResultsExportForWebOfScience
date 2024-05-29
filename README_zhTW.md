@@ -11,16 +11,14 @@
 ## 使用說明
 
 1. 於 Web of Science 搜尋頁面完成搜尋。
-
-2. 執行代碼或封裝後的程式。
-
+2. 執行代碼 `WebOfScienceResultsExport.go` 或封裝後的程式。
 3. 輸入 Web of Science 搜尋頁面之頁面 QID。
-
 	> 舉例：當網址為 "www.webofscience.com/wos/woscc/summary/104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797/relevance/1" 時，QID = 104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797。
 
 4. 輸入要匯出的文獻總數。
-
-5. 等候搜尋結果匯出完成即自動關閉。
-
+5. 等候搜尋結果匯出完成即可關閉。
 	> 註：有時由於網路問題會產生極小之空文件，重新執行即可。
 
+	> 註：受限於 Web of Science 網頁本身限制，匯出大於 100,000 筆資料時，超過 100,000 之文獻無法匯出。
+
+6. [可選] 合併數據：於搜尋結果匯出之資料夾可執行代碼 `WebOfScienceSplice.go` 或封裝後的程式，可將輸出數據整合成一合併文字文件。
