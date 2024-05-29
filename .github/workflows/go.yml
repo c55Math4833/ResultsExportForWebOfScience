@@ -42,3 +42,15 @@ jobs:
       uses: actions/attest-build-provenance@v1.1.2
       with:
         subject-path: 'WOSExportSpliceTool.exe'
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: WOSResultsExportTool
+        path: WOSResultsExportTool.exe
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4.3.3
+      with:
+        name: WOSExportSpliceTool
+        path: WOSExportSpliceTool.exe
