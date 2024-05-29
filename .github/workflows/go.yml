@@ -20,7 +20,10 @@ jobs:
       uses: actions/setup-go@v4
       with:
         go-version: '1.22'
-
+        
+    - name: Attest Build Provenance
+      uses: actions/attest-build-provenance@v1.1.2
+            
     - name: BuildWOSResultsExportTool
       run: go build -ldflags "-s -w" -o WOSResultsExportTool.exe WebOfScienceResultsExport.go
 
