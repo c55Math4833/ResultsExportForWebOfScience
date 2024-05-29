@@ -11,15 +11,14 @@
 ## 使用说明
 
 1. 于 Web of Science 搜索页面完成搜索。
-
-2. 运行代码或封装后的程序。
-
+2. 运行代码 `WebOfScienceResultsExport.go` 或封装后的程序。
 3. 输入 Web of Science 搜索页面之页面 QID。
-
 	> 举例：当网址为 "www.webofscience.com/wos/woscc/summary/104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797/relevance/1" 时，QID = 104f891b-a88b-4f4a-bb8d-da4112e85882-c5b07797。
 
 4. 输入要导出的文献总数。
-
-5. 等候搜索结果导出完成即自动关闭。
-
+5. 等候搜索结果导出完成即可关闭。
 	> 注：有时由于网络问题会产生极小之空文档，重新运行即可。
+
+	> 注：受限于 Web of Science 网页本身限制，导出大于 100,000 笔数据时，超过 100,000 之文献无法导出。
+
+6. [可选] 合并数据：于搜索结果导出之文件夹可运行代码 `WebOfScienceSplice.go` 或封装后的程序，可将输出数据集成成一合并文本文档。
