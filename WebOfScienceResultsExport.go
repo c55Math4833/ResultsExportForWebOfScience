@@ -89,11 +89,24 @@ func clearScreen() {
 		cmd := exec.Command("cmd", "/c", "cls")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
-	case "linux", "darwin": // Linux 和 macOS
+	case "linux", "darwin": // Linux and macOS
 		cmd := exec.Command("clear")
 		cmd.Stdout = os.Stdout
 		cmd.Run()
 	}
+}
+
+func fileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	return err == nil
+}
+
+func fileSize(filePath string) int64 {
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return 0
+	}
+	return fileInfo.Size() / 1024
 }
 
 func GetSID() string {
@@ -171,6 +184,12 @@ func main() {
 				guard <- struct{}{}
 				go func(s, e int) {
 					defer wg.Done()
+					filePath := fmt.Sprintf("%s/%06d_%06d.txt", parentQid, s, e)
+					if fileExists(filePath) && fileSize(filePath) > 2000 {
+						fmt.Println("Skipping file:", filePath)
+						<-guard
+						return
+					}
 					data := SendRequestWOS(parentQid, s, e, sid)
 					SaveDataAsFile(data, s, e, parentQid)
 					<-guard
