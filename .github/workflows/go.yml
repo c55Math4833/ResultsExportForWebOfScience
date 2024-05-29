@@ -31,7 +31,7 @@ jobs:
       run: |
         export GOOS=windows
         export GOARCH=amd64
-        go build -ldflags "-s -w" -o WOSResultsExportUnderstandTool.exe WebOfScienceResultsExport.go
+        go build -ldflags "-s -w" -o WOSResultsExportTool.exe WebOfScienceResultsExport.go
     
     - name: BuildWOSExportSpliceTool
       run: |
