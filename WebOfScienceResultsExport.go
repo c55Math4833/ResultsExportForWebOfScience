@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -8,12 +9,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"regexp"
+	"runtime"
 	"strconv"
 	"sync"
-	"bufio"
-	"runtime"
-	"os/exec"
+	"time"
 )
 
 func SendRequestWOS(parentQid string, start int, end int, sid string) string {
@@ -53,11 +54,28 @@ func SendRequestWOS(parentQid string, start int, end int, sid string) string {
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
 	req.Header.Set("TE", "trailers")
 
-	client := &http.Client{}
-	resp, _ := client.Do(req)
+	client := &http.Client{
+		Timeout: 60 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Request error:", err)
+		return ""
+	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode == http.StatusGatewayTimeout {
+		fmt.Println("Received 504 Timeout, retrying...")
+		time.Sleep(2 * time.Second)
+		return SendRequestWOS(parentQid, start, end, sid)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading response:", err)
+		return ""
+	}
 	return string(body)
 }
 
@@ -65,16 +83,16 @@ func SaveDataAsFile(data string, start int, end int, parentQid string) {
 	if data != "" {
 		dirPath := "./" + parentQid
 		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-            err := os.MkdirAll(dirPath, os.ModePerm)
-            if err != nil {
-                fmt.Println("Error creating directory: ", err)
-                return
-            }
-        }
+			err := os.MkdirAll(dirPath, os.ModePerm)
+			if err != nil {
+				fmt.Println("Error creating directory: ", err)
+				return
+			}
+		}
 		filePath := fmt.Sprintf("%s/%06d_%06d.txt", dirPath, start, end)
 		err := os.WriteFile(filePath, []byte(data), 0644)
 		if err != nil {
-			fmt.Println("Error save file: ", err)
+			fmt.Println("Error saving file: ", err)
 		} else {
 			fmt.Println("Complete save file: ", filePath)
 		}
@@ -161,7 +179,7 @@ func main() {
 		sid := GetSID()
 
 		var wg sync.WaitGroup
-		maxGoroutines := 8
+		maxGoroutines := 6
 		guard := make(chan struct{}, maxGoroutines)
 
 		if mark < 1000 {
