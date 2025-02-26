@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -22,14 +23,30 @@ func processFile(filePath string, isFirst bool, isLast bool) ([]string, error) {
 		lines = append(lines, scanner.Text())
 	}
 
-    // 刪除除最後一個文件外之 "EF" 行。
+	// 刪除除最後一個文件外之 "EF" 行。
 	if !isLast && lines[len(lines)-1] == "EF" {
 		lines = lines[:len(lines)-1]
 	}
 
-    // 刪除除第一個文件外之 "FN"、"VR" 行。
+	// 刪除除第一個文件外之 "FN"、"VR" 行。
 	if !isFirst && strings.Join(lines[:2], "\n") == "\ufeffFN Clarivate Analytics Web of Science\nVR 1.0" {
 		lines = lines[2:]
+	}
+
+	// 輸出檔案異常修正-刪除只有 "null" 的行。
+	for i := 0; i < len(lines); i++ {
+		if lines[i] == "null" {
+			lines = append(lines[:i], lines[i+1:]...)
+			i--
+		}
+	}
+
+	// 輸出檔案異常修正-刪除行開頭為 "null" 開頭，"PT *"結尾的行，並將其替換為 "PT *"。
+	for i, line := range lines {
+		re := regexp.MustCompile(`^null.*(PT [A-Z]+)$`)
+		if m := re.FindStringSubmatch(line); len(m) == 2 {
+			lines[i] = m[1]
+		}
 	}
 
 	return lines, scanner.Err()
@@ -68,7 +85,7 @@ func main() {
 		panic(err)
 	}
 
-    if len(files) == 0 {
+	if len(files) == 0 {
 		panic(err) // 無法匹配正確文件。
 	}
 
@@ -80,6 +97,6 @@ func main() {
 
 	err = mergeFiles(files, outputFile)
 	if err != nil {
-		panic(err) 
+		panic(err)
 	}
 }
